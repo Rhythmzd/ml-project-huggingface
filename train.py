@@ -206,7 +206,8 @@ if __name__ == "__main__":
     
     # 上传到Hugging Face
     if os.getenv("HF_TOKEN"):
-        repo_name = "your-username/cat-dog-classifier"  # 替换为你的用户名
+        hf_username = os.getenv("HF_USERNAME", "your-username")
+        repo_name = f"{hf_username}/cat-dog-classifier"
         classifier.push_to_huggingface(repo_name)
     else:
         print("未设置HF_TOKEN环境变量，跳过上传到Hugging Face")
