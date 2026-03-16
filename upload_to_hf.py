@@ -1,5 +1,6 @@
 """
-上传模型到Huggingface Hub
+猫狗智能识别系统 - 模型自动上传模块
+将训练好的模型自动发布到Hugging Face Hub
 """
 import os
 import time
@@ -15,7 +16,7 @@ def upload_model():
     # 配置
     repo_id = "wzx952/cat-dog-classifier"  # 你的Huggingface用户名
     
-    print(f"🚀 开始上传模型到 {repo_id}...")
+    print(f"�🐶 猫狗智能识别系统 - 开始上传模型到 {repo_id}...")
     print(f"🔑 Token前缀: {token[:10]}...")
     
     # 先登录
@@ -57,7 +58,7 @@ def upload_model():
             repo_id=repo_id,
             repo_type="model",
             token=token,
-            commit_message="🤖 自动训练并上传猫狗分类模型"
+            commit_message="🐱🐶 猫狗智能识别系统 - 自动训练与部署"
         )
         print(f"✅ 模型已成功上传到 https://huggingface.co/{repo_id}")
     except Exception as e:

@@ -205,12 +205,10 @@ if __name__ == "__main__":
     best_acc = classifier.train(train_loader, val_loader, epochs=5)
     
     # 训练完成！
-    print("🎯 训练完成！模型文件已保存为 best_model.pth")
+    print("🐱🐶 猫狗智能识别系统 - 训练完成！")
+    print("🎯 模型文件已保存为 best_model.pth")
     print("📁 模型位置: ./best_model.pth")
-    print("✨ 项目演示成功！")
+    print("✨ 智能识别系统训练成功！")
     print("")
-    print("📝 如需手动上传到Hugging Face:")
-    print("1. 下载 best_model.pth 文件")
-    print("2. 访问 https://huggingface.co/new")
-    print("3. 创建新仓库: wxz952/cat-dog-classifier")
-    print("4. 上传模型文件")
+    print("🤖 系统将自动上传模型到Hugging Face Hub...")
+    print("🔗 模型即将发布至: https://huggingface.co/wxz952/cat-dog-classifier")

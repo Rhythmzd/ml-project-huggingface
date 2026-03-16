@@ -1,4 +1,4 @@
-name: 训练模型并上传到Huggingface
+name: 猫狗智能识别训练与部署
 
 on:
   push:
@@ -72,9 +72,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.timestamp.outputs.time }}
-          name: 猫狗分类模型 v${{ steps.timestamp.outputs.time }}
+          name: 猫狗智能识别 v${{ steps.timestamp.outputs.time }}
           body: |
-            🤖 自动训练并发布猫狗分类模型
+            🐱🐶 猫狗智能识别模型自动发布
             
             📅 训练时间: ${{ steps.timestamp.outputs.time }}
             🔗 Huggingface模型: https://huggingface.co/wxz952/cat-dog-classifier
