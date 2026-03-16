@@ -1,6 +1,9 @@
-# 猫狗分类器 - ML项目与Hugging Face自动部署
+# 猫狗分类器 - ML项目示例
 
-这是一个简单的机器学习项目，演示如何使用GitHub CI/CD自动训练模型并上传到Hugging Face Hub。
+这是一个简单的机器学习项目，演示如何：
+- 训练一个PyTorch图像分类模型
+- 使用GitHub Actions自动化训练流程
+- 自动上传模型到Huggingface Hub
 
 ## 项目特点
 
@@ -9,68 +12,60 @@
 - 🤗 **Hugging Face集成**: 模型自动发布到Hugging Face Hub
 - 📊 **实验跟踪**: 集成WandB记录训练过程
 
-## 项目结构
+## 📋 项目结构
 
 ```
 ml-project-huggingface/
-├── train.py              # 训练脚本
+├── train.py              # 模型训练脚本
+├── upload_to_hf.py       # 上传到Huggingface的脚本
 ├── model.py              # 模型推理脚本
-├── requirements.txt      # 依赖包
-├── .github/workflows/    # GitHub Actions工作流
-│   └── train-and-deploy.yml
+├── requirements.txt      # Python依赖
+├── .github/workflows/    # GitHub Actions配置
+│   ├── train-and-upload.yml  # 完整训练+上传工作流
+│   └── upload-hf.yml         # 单独上传工作流
 ├── data/                 # 数据目录
-└── README.md            # 项目说明
+│   ├── train/           # 训练数据
+│   └── val/             # 验证数据
+└── best_model.pth       # 训练后的模型文件（自动生成）
 ```
 
-## 快速开始
+## 🚀 快速开始
 
-### 1. 克隆项目
+### 本地运行
 
-```bash
-git clone https://github.com/YOUR_USERNAME/ml-project-huggingface.git
-cd ml-project-huggingface
-```
-
-### 2. 安装依赖
-
+1. **安装依赖**：
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. 准备数据
-
-将猫狗图片按以下结构放置：
-
-```
-data/
-├── train/
-│   ├── cats/
-│   └── dogs/
-└── val/
-    ├── cats/
-    └── dogs/
-```
-
-### 4. 本地训练
-
+2. **训练模型**：
 ```bash
-export HF_TOKEN="your_huggingface_token"
 python train.py
 ```
 
-### 5. 模型推理
+3. **模型将保存为** `best_model.pth`
 
-```python
-from model import CatDogModel
+### 设置GitHub Actions自动化
 
-# 加载模型
-model = CatDogModel("best_model.pth")
+1. **Fork或创建此仓库**
 
-# 预测
-result = model.predict("path/to/image.jpg")
-print(f"预测结果: {result['predicted_class']}")
-print(f"置信度: {result['confidence']:.2f}%")
-```
+2. **获取Huggingface Token**
+   - 访问 https://huggingface.co/settings/tokens
+   - 创建一个新的token（需要写入权限）
+
+3. **在GitHub中设置Secret**
+   - 进入你的仓库 → Settings → Secrets and variables → Actions
+   - 点击 "New repository secret"
+   - 名称: `HF_TOKEN`
+   - 值: 粘贴你的Huggingface token
+
+4. **修改配置**
+   - 编辑 `upload_to_hf.py` 文件
+   - 将 `wzx952` 改为你的Huggingface用户名
+
+5. **触发工作流**
+   - 推送代码到main分支，或
+   - 在GitHub Actions页面手动触发
 
 ## GitHub Actions自动部署
 

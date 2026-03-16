@@ -71,16 +71,109 @@ jobs:
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
-        echo "🎯 训练完成！模型文件已保存为 best_model.pth"
-        echo "📁 模型位置: /home/runner/work/ml-project-huggingface/ml-project-huggingface/best_model.pth"
-        echo "🔗 GitHub仓库: https://github.com/Rhythmzd/ml-project-huggingface"
-        echo "✨ 项目演示成功！"
-        echo ""
-        echo "📝 如需手动上传到Hugging Face:"
-        echo "1. 下载 best_model.pth 文件"
-        echo "2. 访问 https://huggingface.co/new"
-        echo "3. 创建新仓库: wxz952/cat-dog-classifier"
-        echo "4. 上传模型文件"
+        # 安装huggingface_hub
+        pip install huggingface_hub
+        
+        # 使用huggingface-cli直接上传
+        python -c "
+        import os
+        from huggingface_hub import HfApi, login, upload_file
+        from pathlib import Path
+        
+        # 登录Hugging Face
+        token = os.getenv('HF_TOKEN')
+        login(token=token)
+        
+        # 创建仓库
+        api = HfApi()
+        try:
+            repo_id = api.create_repo(
+                repo_id='wzx952/cat-dog-classifier',
+                token=token,
+                repo_type='model',
+                private=False,
+                exist_ok=True
+            )
+            print('✅ 仓库创建成功')
+        except Exception as e:
+            print(f'仓库创建信息: {e}')
+        
+        # 上传模型文件
+        try:
+            upload_file(
+                path_or_fileobj='best_model.pth',
+                path_in_repo='best_model.pth',
+                repo_id='wzx952/cat-dog-classifier',
+                token=token,
+                repo_type='model'
+            )
+            print('✅ 模型文件上传成功')
+        except Exception as e:
+            print(f'❌ 模型上传失败: {e}')
+        
+        # 创建README
+        readme_content = '''---
+license: mit
+tags:
+- pytorch
+- image-classification
+- cats-dogs
+---
+
+# Cat Dog Classifier
+
+这是一个简单的猫狗分类模型，使用ResNet18架构训练。
+
+## 模型信息
+- 架构: ResNet18
+- 输入: 224x224 RGB图像
+- 输出: 猫/狗分类
+
+## 使用方法
+```python
+import torch
+from torchvision import transforms
+from PIL import Image
+
+# 加载模型
+model = torch.load('best_model.pth')
+model.eval()
+
+# 预测
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+image = Image.open('your_image.jpg')
+input_tensor = transform(image).unsqueeze(0)
+output = model(input_tensor)
+predicted_class = 'cat' if output[0][0] > output[0][1] else 'dog'
+print(f'预测结果: {predicted_class}')
+```
+
+## 训练信息
+- 训练框架: PyTorch
+- 训练环境: GitHub Actions
+- 项目地址: https://github.com/Rhythmzd/ml-project-huggingface
+'''
+        
+        try:
+            upload_file(
+                path_or_fileobj=readme_content.encode(),
+                path_in_repo='README.md',
+                repo_id='wzx952/cat-dog-classifier',
+                token=token,
+                repo_type='model'
+            )
+            print('✅ README上传成功')
+        except Exception as e:
+            print(f'❌ README上传失败: {e}')
+        
+        print('🎉 Hugging Face上传完成!')
+        print('🔗 模型地址: https://huggingface.co/wxz952/cat-dog-classifier')
+        "
         
     - name: Create model card
       env:

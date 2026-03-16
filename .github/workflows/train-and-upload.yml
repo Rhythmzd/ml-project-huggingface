@@ -1,0 +1,95 @@
+name: 训练模型并上传到Huggingface
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 允许手动触发
+
+permissions:
+  contents: write  # 允许创建Release和推送标签
+
+jobs:
+  train-and-upload:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+      
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: 创建虚拟数据
+        run: |
+          mkdir -p data/train/cats data/train/dogs data/val/cats data/val/dogs
+          python -c "
+          import os
+          from PIL import Image
+          import numpy as np
+          
+          # 创建训练数据
+          for i in range(10):
+              # 猫的图片（随机噪声）
+              img = Image.fromarray(np.random.randint(0, 256, (224, 224, 3), dtype=np.uint8))
+              img.save(f'data/train/cats/cat_{i}.jpg')
+              
+              # 狗的图片（不同随机噪声）
+              img = Image.fromarray(np.random.randint(0, 256, (224, 224, 3), dtype=np.uint8))
+              img.save(f'data/train/dogs/dog_{i}.jpg')
+          
+          # 创建验证数据
+          for i in range(5):
+              img = Image.fromarray(np.random.randint(0, 256, (224, 224, 3), dtype=np.uint8))
+              img.save(f'data/val/cats/cat_{i}.jpg')
+              img.save(f'data/val/dogs/dog_{i}.jpg')
+          
+          print('虚拟数据创建完成')
+          "
+      
+      - name: 训练模型
+        run: |
+          python train.py
+      
+      - name: 上传模型到Huggingface
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python upload_to_hf.py
+      
+      - name: 获取时间戳
+        id: timestamp
+        run: echo "time=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+      
+      - name: 创建Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.timestamp.outputs.time }}
+          name: 猫狗分类模型 v${{ steps.timestamp.outputs.time }}
+          body: |
+            🤖 自动训练并发布猫狗分类模型
+            
+            📅 训练时间: ${{ steps.timestamp.outputs.time }}
+            🔗 Huggingface模型: https://huggingface.co/wxz952/cat-dog-classifier
+            
+            ## 模型文件
+            - best_model.pth (PyTorch模型权重)
+            - README.md (模型使用说明)
+            
+            ## 使用方法
+            ```python
+            import torch
+            model = torch.load("best_model.pth")
+            model.eval()
+            ```
+          files: |
+            best_model.pth
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
