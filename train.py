@@ -206,8 +206,14 @@ if __name__ == "__main__":
     
     # 上传到Hugging Face
     if os.getenv("HF_TOKEN"):
-        hf_username = os.getenv("HF_USERNAME", "your-username")
-        repo_name = f"{hf_username}/cat-dog-classifier"
-        classifier.push_to_huggingface(repo_name)
+        # 直接使用你的用户名
+        repo_name = "Rhythmzd/cat-dog-classifier"
+        print(f"正在上传到 Hugging Face: {repo_name}")
+        try:
+            classifier.push_to_huggingface(repo_name)
+            print("✅ 模型上传成功！")
+        except Exception as e:
+            print(f"❌ 上传失败: {e}")
+            print("请检查 Hugging Face token 权限是否正确")
     else:
         print("未设置HF_TOKEN环境变量，跳过上传到Hugging Face")
