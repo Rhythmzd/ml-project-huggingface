@@ -207,7 +207,7 @@ if __name__ == "__main__":
     # 上传到Hugging Face
     if os.getenv("HF_TOKEN"):
         # 直接使用你的用户名
-        repo_name = "Rhythmzd/cat-dog-classifier"
+        repo_name = "wzx952/cat-dog-classifier"
         print(f"正在上传到 Hugging Face: {repo_name}")
         try:
             classifier.push_to_huggingface(repo_name)
