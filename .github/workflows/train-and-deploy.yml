@@ -1,0 +1,124 @@
+name: Train Model and Deploy to Hugging Face
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Log in to Hugging Face
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: |
+        huggingface-cli login --token $HF_TOKEN
+        
+    - name: Create dummy data for training
+      run: |
+        mkdir -p data/train/cats data/train/dogs data/val/cats data/val/dogs
+        # 创建一些虚拟图片用于演示（实际项目中应该使用真实数据）
+        python -c "
+        import os
+        from PIL import Image
+        import numpy as np
+        
+        # 创建训练数据
+        for i in range(10):
+            # 猫的图片（随机噪声）
+            img = Image.fromarray(np.random.randint(0, 256, (224, 224, 3), dtype=np.uint8))
+            img.save(f'data/train/cats/cat_{i}.jpg')
+            
+            # 狗的图片（不同随机噪声）
+            img = Image.fromarray(np.random.randint(0, 256, (224, 224, 3), dtype=np.uint8))
+            img.save(f'data/train/dogs/dog_{i}.jpg')
+        
+        # 创建验证数据
+        for i in range(5):
+            img = Image.fromarray(np.random.randint(0, 256, (224, 224, 3), dtype=np.uint8))
+            img.save(f'data/val/cats/cat_{i}.jpg')
+            img.save(f'data/val/dogs/dog_{i}.jpg')
+        
+        print('虚拟数据创建完成')
+        "
+        
+    - name: Train model
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+      run: |
+        python train.py
+        
+    - name: Upload model to Hugging Face
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        HF_USERNAME: ${{ secrets.HF_USERNAME }}
+      run: |
+        python -c "
+        import os
+        from huggingface_hub import HfApi, HfFolder
+        from train import SimpleCatDogClassifier
+        
+        # 设置token
+        HfFolder.save_token(os.getenv('HF_TOKEN'))
+        
+        # 创建分类器并加载训练好的模型
+        classifier = SimpleCatDogClassifier()
+        
+        # 上传到Hugging Face
+        repo_name = f'{os.getenv(\"HF_USERNAME\")}/cat-dog-classifier'
+        classifier.push_to_huggingface(repo_name)
+        "
+        
+    - name: Create model card
+      env:
+        HF_USERNAME: ${{ secrets.HF_USERNAME }}
+      run: |
+        cat > model_card.md << 'EOF'
+        ---
+        license: mit
+        tags:
+        - pytorch
+        - image-classification
+        - cats-dogs
+        ---
+        
+        # Cat Dog Classifier
+        
+        这是一个简单的猫狗分类模型，使用ResNet18架构训练。
+        
+        ## 模型信息
+        - 架构: ResNet18
+        - 输入: 224x224 RGB图像
+        - 输出: 猫/狗分类
+        
+        ## 使用方法
+        ```python
+        from transformers import AutoModelForImageClassification
+        model = AutoModelForImageClassification.from_pretrained('${{ secrets.HF_USERNAME }}/cat-dog-classifier')
+        ```
+        
+        ## 训练信息
+        - 训练数据: 猫狗图像数据集
+        - 训练环境: GitHub Actions
+        - 框架: PyTorch
+        EOF
+        
+        huggingface-cli upload ${{ secrets.HF_USERNAME }}/cat-dog-classifier model_card.md README.md --repo-type model
