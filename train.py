@@ -25,11 +25,15 @@ class SimpleCatDogClassifier:
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=lr)
         
-        wandb.init(project="cat-dog-classification", config={
-            "learning_rate": lr,
-            "epochs": epochs,
-            "model": self.model_name
-        })
+        # 只有在有WandB API key时才初始化
+        if os.getenv("WANDB_API_KEY"):
+            wandb.init(project="cat-dog-classification", config={
+                "learning_rate": lr,
+                "epochs": epochs,
+                "model": self.model_name
+            })
+        else:
+            print("WandB API key not found, skipping WandB logging")
         
         best_val_acc = 0.0
         
@@ -54,22 +58,28 @@ class SimpleCatDogClassifier:
                 correct += (predicted == target).sum().item()
                 
                 if batch_idx % 10 == 0:
-                    wandb.log({
-                        "batch_loss": loss.item(),
-                        "batch_accuracy": 100. * correct / total
-                    })
+                    if os.getenv("WANDB_API_KEY"):
+                        wandb.log({
+                            "batch_loss": loss.item(),
+                            "batch_accuracy": 100. * correct / total
+                        })
+                    else:
+                        print(f"Batch {batch_idx}: Loss={loss.item():.4f}, Acc={100. * correct / total:.2f}%")
             
             train_acc = 100. * correct / total
             
             # 验证
             val_acc = self._validate(val_loader, criterion)
             
-            wandb.log({
-                "epoch": epoch,
-                "train_loss": running_loss / len(train_loader),
-                "train_accuracy": train_acc,
-                "val_accuracy": val_acc
-            })
+            if os.getenv("WANDB_API_KEY"):
+                wandb.log({
+                    "epoch": epoch,
+                    "train_loss": running_loss / len(train_loader),
+                    "train_accuracy": train_acc,
+                    "val_accuracy": val_acc
+                })
+            else:
+                print(f"Epoch {epoch+1}: Train Loss={running_loss / len(train_loader):.4f}, Train Acc={train_acc:.2f}%, Val Acc={val_acc:.2f}%")
             
             print(f'Epoch {epoch+1}/{epochs}: Train Acc: {train_acc:.2f}%, Val Acc: {val_acc:.2f}%')
             
@@ -77,7 +87,8 @@ class SimpleCatDogClassifier:
                 best_val_acc = val_acc
                 self._save_checkpoint(f'best_model.pth')
         
-        wandb.finish()
+        if os.getenv("WANDB_API_KEY"):
+            wandb.finish()
         return best_val_acc
     
     def _validate(self, val_loader, criterion):
