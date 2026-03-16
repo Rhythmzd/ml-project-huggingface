@@ -204,16 +204,13 @@ if __name__ == "__main__":
     # 训练模型
     best_acc = classifier.train(train_loader, val_loader, epochs=5)
     
-    # 上传到Hugging Face
-    if os.getenv("HF_TOKEN"):
-        # 直接使用你的用户名
-        repo_name = "wzx952/cat-dog-classifier"
-        print(f"正在上传到 Hugging Face: {repo_name}")
-        try:
-            classifier.push_to_huggingface(repo_name)
-            print("✅ 模型上传成功！")
-        except Exception as e:
-            print(f"❌ 上传失败: {e}")
-            print("请检查 Hugging Face token 权限是否正确")
-    else:
-        print("未设置HF_TOKEN环境变量，跳过上传到Hugging Face")
+    # 训练完成！
+    print("🎯 训练完成！模型文件已保存为 best_model.pth")
+    print("📁 模型位置: ./best_model.pth")
+    print("✨ 项目演示成功！")
+    print("")
+    print("📝 如需手动上传到Hugging Face:")
+    print("1. 下载 best_model.pth 文件")
+    print("2. 访问 https://huggingface.co/new")
+    print("3. 创建新仓库: wxz952/cat-dog-classifier")
+    print("4. 上传模型文件")

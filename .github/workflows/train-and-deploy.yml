@@ -71,27 +71,16 @@ jobs:
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
-        python -c "
-        import os
-        from huggingface_hub import HfApi, HfFolder
-        from train import SimpleCatDogClassifier
-        
-        # 设置token
-        HfFolder.save_token(os.getenv('HF_TOKEN'))
-        
-        # 创建分类器并加载训练好的模型
-        classifier = SimpleCatDogClassifier()
-        
-        # 直接使用你的用户名上传
-        repo_name = 'wzx952/cat-dog-classifier'
-        print(f'正在上传到 Hugging Face: {repo_name}')
-        try:
-            classifier.push_to_huggingface(repo_name)
-            print('✅ 模型上传成功！')
-        except Exception as e:
-            print(f'❌ 上传失败: {e}')
-            print('请检查 Hugging Face token 权限是否正确')
-        "
+        echo "🎯 训练完成！模型文件已保存为 best_model.pth"
+        echo "📁 模型位置: /home/runner/work/ml-project-huggingface/ml-project-huggingface/best_model.pth"
+        echo "🔗 GitHub仓库: https://github.com/Rhythmzd/ml-project-huggingface"
+        echo "✨ 项目演示成功！"
+        echo ""
+        echo "📝 如需手动上传到Hugging Face:"
+        echo "1. 下载 best_model.pth 文件"
+        echo "2. 访问 https://huggingface.co/new"
+        echo "3. 创建新仓库: wxz952/cat-dog-classifier"
+        echo "4. 上传模型文件"
         
     - name: Create model card
       env:
