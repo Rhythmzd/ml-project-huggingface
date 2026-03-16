@@ -1,0 +1,90 @@
+name: Upload to Hugging Face
+
+on:
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install torch torchvision huggingface_hub
+        
+    - name: Upload to Hugging Face
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: |
+        python -c "
+        import os
+        from huggingface_hub import HfApi, login, upload_file
+        
+        # 登录
+        token = os.getenv('HF_TOKEN')
+        login(token=token)
+        
+        # 创建仓库
+        api = HfApi()
+        try:
+            api.create_repo(
+                repo_id='wzx952/cat-dog-classifier',
+                token=token,
+                repo_type='model',
+                private=False,
+                exist_ok=True
+            )
+            print('✅ 仓库创建成功')
+        except Exception as e:
+            print(f'仓库信息: {e}')
+        
+        # 上传模型文件
+        try:
+            upload_file(
+                path_or_fileobj='best_model.pth',
+                path_in_repo='best_model.pth',
+                repo_id='wzx952/cat-dog-classifier',
+                token=token,
+                repo_type='model'
+            )
+            print('✅ 模型上传成功')
+        except Exception as e:
+            print(f'模型上传失败: {e}')
+        
+        # 上传README
+        readme = '''---
+        license: mit
+        tags:
+        - pytorch
+        - image-classification
+        ---
+        
+        # Cat Dog Classifier
+        
+        简单的猫狗分类模型，使用ResNet18训练。
+        '''
+        
+        try:
+            upload_file(
+                path_or_fileobj=readme.encode(),
+                path_in_repo='README.md',
+                repo_id='wzx952/cat-dog-classifier',
+                token=token,
+                repo_type='model'
+            )
+            print('✅ README上传成功')
+        except Exception as e:
+            print(f'README上传失败: {e}')
+        
+        print('🎉 上传完成!')
+        print('🔗 https://huggingface.co/wxz952/cat-dog-classifier')
+        "
